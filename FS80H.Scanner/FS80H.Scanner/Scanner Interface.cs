@@ -1,45 +1,40 @@
 
 namespace FS80H.Scanner;
 
-public partial class Form1 : Form
+public partial class Scanner_Interface : Form
 {
     private Futronic _futronic;
     private bool _isInitialized = false;
 
 
-    public Form1()
+    public Scanner_Interface()
     {
+        _futronic = new Futronic();
         InitializeComponent();
     }
 
-    private void Form1_FormClosing(object sender, EventArgs e)
+    private void Scanner_Interface_FormClosing(object sender, EventArgs e)
     {
         if (_isInitialized)
         {
+            txtLogs.AppendText("Fingerprint scanner disconnected. \r\n");
             _futronic.SetDiodesStatus(false, false);
-            txtLogs.AppendText("Fingerprint scanner disposed. \r\n");
         }
     }
 
     private void btn_Start_Capture_Click(object sender, EventArgs e)
     {
-        _futronic = new Futronic();
         _isInitialized = _futronic.Init();
         if (_isInitialized)
         {
-            _futronic.SetDiodesStatus(true, false);
             txtLogs.AppendText("Fingerprint scanner connected. \r\n");
-            Thread.Sleep(200);
-            _futronic.SetDiodesStatus(false, false);
-            Thread.Sleep(50);
-            _futronic.SetDiodesStatus(true, false);
-            Thread.Sleep(200);
-            _futronic.SetDiodesStatus(false, false);
+
+            //Double flash the green light to indicate connection
+            FlashLight(true, false, 200, 50, 2);
 
         }
         else
         {
-            _futronic.SetDiodesStatus(false, true);
             txtLogs.AppendText("Failed to connect to Fingerprint scanner. \r\n");
         }
     }
@@ -50,29 +45,28 @@ public partial class Form1 : Form
         {
             // Capture fingerprint
             var fingerprintBitMap = _futronic.ExportBitMap();
+            if(fingerprintBitMap == null)
+            {
+                txtLogs.AppendText("Failed to capture fingerprint. \r\n");
+                FlashLight(false, true, 200, 50, 2);
+                return;
+            }
+
             Fingerprint.Image = fingerprintBitMap;
 
             var isFingerprint = _futronic.IsFinger();
-            if (isFingerprint)
-            {
-                _futronic.SetDiodesStatus(true, false);
-                txtLogs.AppendText("Fingerprint captured successfully. \r\n");
-                Thread.Sleep(1500);
-                _futronic.SetDiodesStatus(false, false);
-            }
-            else
-            {
-                _futronic.SetDiodesStatus(false, true);
-                txtLogs.AppendText("Invalid fingerprint. \r\n");
-                Thread.Sleep(1500);
-                _futronic.SetDiodesStatus(false, false);
-            }
+            txtLogs.AppendText(isFingerprint ?
+                                "Fingerprint captured successfully. \r\n" : 
+                                "Invalid fingerprint. \r\n");
+            
+            FlashLight(isFingerprint, !isFingerprint, 1500);
         }
         else
         {
             txtLogs.AppendText("Fingerprint scanner not connected. \r\n");
         }
     }
+
     private void btn_Download_Click(object sender, EventArgs e)
     {
         var image = Fingerprint.Image;
@@ -91,6 +85,23 @@ public partial class Form1 : Form
                 txtLogs.AppendText("Fingerprint saved successfully as " + saveFileDialog.FileName + ".  \r\n");
             }
         }
+    }
+
+    private void FlashLight(bool green, bool red, int durationOn, int durationOff = 0, int flashCount = 1)
+    {
+        do
+        {
+            // Switch on the light(s)
+            _futronic.SetDiodesStatus(green, red);
+            Thread.Sleep(durationOn);
+
+            // Switch off the light(s)
+            _futronic.SetDiodesStatus(false, false);
+            if(durationOff> 0) Thread.Sleep(durationOff);
+
+            flashCount--;
+        } 
+        while (flashCount > 0);
     }
 }
 
