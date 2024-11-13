@@ -49,11 +49,15 @@ public class Futronic
             if (!Connected)
                 return null;
 
+            // Check how big the image is going to be
             var t = new _FTRSCAN_IMAGE_SIZE();
             ftrScanGetImageSize(device, out t);
+
+            // Load the image into a byte array
             byte[] arr = new byte[t.nImageSize];
             ftrScanGetImage(device, 4, arr);
 
+            // Create a bitmap from the byte array
             var bmp = new Bitmap(t.nWidth, t.nHeight);
             for (int x = 0; x < t.nWidth; x++)
             {
@@ -63,25 +67,31 @@ public class Futronic
                     bmp.SetPixel(x, y, Color.FromArgb(a, a, a));
                 }
             }
+
             return bmp;
         }
-        catch (Exception e)
+        //This is not an obsolete exception since it will get thrown if the device is disconnected
+        catch (ExecutionEngineException ex)
         {
-            return null;
+            throw new Exception("Device was disconnected before the fingerprint scan could complete.");
+        }
+        catch(Exception e)
+        {
+            throw;
         }
     }
     
     public bool IsFinger()
     {
-        var t = new _FTRSCAN_FRAME_PARAMETERS();
-        bool dedo = ftrScanIsFingerPresent(device, out t);
-        if (!t.isOK)
+        var frameParameters = new _FTRSCAN_FRAME_PARAMETERS();
+        bool isPresent = ftrScanIsFingerPresent(device, out frameParameters);
+        if (!frameParameters.isOK)
         {
             Dispose();
             return false;
         }
         else
-            return dedo;
+            return isPresent;
     }
 
     public void GetDiodesStatus(out bool green, out bool red)

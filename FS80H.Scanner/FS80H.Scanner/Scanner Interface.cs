@@ -31,7 +31,6 @@ public partial class Scanner_Interface : Form
 
             //Double flash the green light to indicate connection
             FlashLight(true, false, 200, 50, 2);
-
         }
         else
         {
@@ -48,6 +47,7 @@ public partial class Scanner_Interface : Form
             if(fingerprintBitMap == null)
             {
                 txtLogs.AppendText("Failed to capture fingerprint. \r\n");
+                //Double flash the red light to indicate we failed to scan the fingerprint
                 FlashLight(false, true, 200, 50, 2);
                 return;
             }
@@ -58,7 +58,8 @@ public partial class Scanner_Interface : Form
             txtLogs.AppendText(isFingerprint ?
                                 "Fingerprint captured successfully. \r\n" : 
                                 "Invalid fingerprint. \r\n");
-            
+
+            //Double flash the green or red light bases on whether the image is a valid fingerprint or not
             FlashLight(isFingerprint, !isFingerprint, 1500);
         }
         else
@@ -79,6 +80,7 @@ public partial class Scanner_Interface : Form
                 Filter = "WSQ|*.wsq",
                 Title = "Save an Image File"
             };
+
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 image.Save(saveFileDialog.FileName);
