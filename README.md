@@ -5,7 +5,7 @@ Based on the code from https://github.com/ay29dev/futronic-FS80H, but it uses th
 ***Do note that in order for this to be able to use the ftrScanAPI.dll, the project needs to be compiled in x86.***
 
 This is built specifically for the Futronic FS80H fingerprint scanner. It might work with the other Futronic models, but it is not guarenteed.
-Also, apologies for the atrocious UI, but I can't be bothered to make it look pretty. I just needed it to work as a proof of concept.
+Also, apologies for the atrocious UI. I just needed it to work as a proof of concept.
 
 ## Usage
 1. Obvious step, but plug in the FS80H device via USB to the device being used to run the application.
